@@ -9,7 +9,7 @@ setuptools.setup(
     description="Wrapper library of TweetDeck's internal api.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/m4fn3/pytweetdeck",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
