@@ -13,7 +13,8 @@ for tweets in client.stream_timeline():
         # replace media url
         if "media" in tweet["entities"]:
             for media in tweet["extended_entities"]["media"]:
-                content = content.replace(media["url"], media["media_url"])
+                content = content.replace(media["url"], "")
+                content += "\n" + media["media_url"]
         body = {
             "username": tweet["user"]["screen_name"],
             "avatar_url": tweet["user"]["profile_image_url"],
