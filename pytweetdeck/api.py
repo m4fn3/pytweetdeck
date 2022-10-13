@@ -61,18 +61,21 @@ class Client:
         resp = self.session.get("https://api.twitter.com/1.1/statuses/home_timeline.json?count=1")
         last_tweet = resp.json()[0]["id"]
         while True:
-            resp = self.session.get(
-                "https://api.twitter.com/1.1/statuses/home_timeline.json",
-                params={
-                    "count": 40,
-                    "since_id": last_tweet
-                }
-            )
-            data = resp.json()
-            if data:
-                last_tweet = data[0]["id"]
-            yield data
-            time.sleep(4)
+            try:
+                resp = self.session.get(
+                    "https://api.twitter.com/1.1/statuses/home_timeline.json",
+                    params={
+                        "count": 40,
+                        "since_id": last_tweet
+                    }
+                )
+                data = resp.json()
+                if data:
+                    last_tweet = data[0]["id"]
+                yield data
+                time.sleep(4)
+            except requests.exceptions.ConnectionError:
+                print("Connection aborted! Retrying...")
 
     def follow_user(self, screen_name: str, type_: bool = True) -> bool:
         url = "https://api.twitter.com/1.1/friendships/" + ("create.json" if type_ else "destroy.json")
