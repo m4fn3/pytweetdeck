@@ -5,6 +5,10 @@ You can handle twitter functions without consumer key/secret since pytweetdeck u
 
 ## Install
 ```
+pip install pytweetdeck
+```
+or directly from GitHub
+```
 pip install git+https://github.com/m4fn3/pytweetdeck.git
 ```
 ## Quick Example
