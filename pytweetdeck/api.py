@@ -1,12 +1,17 @@
 import requests
 import time
 from lxml.html import fromstring
+import json
 
 
 class Client:
     def __init__(self, auth: dict = None, name_or_email: str = None, password: str = None):
         self.session = requests.Session()
+        self.session.headers.update({
+            'authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
+        })
         if auth:
+            self.auth = auth
             self.session.headers.update(auth)
         elif name_or_email and password:
             self.login(name_or_email, password)
@@ -31,18 +36,17 @@ class Client:
         }
         login_session.post('https://twitter.com/sessions', headers=headers, data=data)
         cookie = login_session.cookies.get_dict()
-        print(cookie)
         if "auth_token" not in cookie or "ct0" not in cookie:
             raise RuntimeError("Failed to login to the account. username/password may be incorrect.")
-        self.session.headers.update({
+        self.auth = {
             'x-csrf-token': cookie["ct0"],
-            'authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
             'cookie': f'auth_token={cookie["auth_token"]}; '
                       f'ct0={cookie["ct0"]}',
-        })
+        }
+        self.session.headers.update(self.auth)
 
     def dump_auth(self) -> None:
-        print(self.session.headers)
+        print(json.dumps(self.auth, indent=2))
 
     def get_timeline(self, count) -> dict:
         resp = self.session.get(
