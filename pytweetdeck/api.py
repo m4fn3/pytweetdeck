@@ -11,7 +11,7 @@ class Client:
         elif name_or_email and password:
             self.login(name_or_email, password)
         else:
-            RuntimeError("Either auth or name/email+password is required to login.")
+            raise RuntimeError("Either auth or name/email+password is required to login.")
 
     def login(self, name_or_email: str, password: str):
         login_session = requests.Session()
@@ -31,8 +31,9 @@ class Client:
         }
         login_session.post('https://twitter.com/sessions', headers=headers, data=data)
         cookie = login_session.cookies.get_dict()
-        if not ("auth_token" in cookie and "ct0" in cookie):
-            RuntimeError("Failed to login to the account.")
+        print(cookie)
+        if "auth_token" not in cookie or "ct0" not in cookie:
+            raise RuntimeError("Failed to login to the account. username/password may be incorrect.")
         self.session.headers.update({
             'x-csrf-token': cookie["ct0"],
             'authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
