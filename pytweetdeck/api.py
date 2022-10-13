@@ -72,7 +72,7 @@ class Client:
             if data:
                 last_tweet = data[0]["id"]
             yield data
-            time.sleep(3)
+            time.sleep(4)
 
     def follow_user(self, screen_name: str, type_: bool = True) -> bool:
         url = "https://api.twitter.com/1.1/friendships/" + ("create.json" if type_ else "destroy.json")
