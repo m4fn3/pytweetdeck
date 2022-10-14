@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="pytweetdeck",
-    version="1.0.0",
+    version="1.0.1",
     install_requires=open("requirements.txt").read().splitlines(),
     author="mafu",
     author_email="mafusukee@gmail.com",
