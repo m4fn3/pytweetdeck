@@ -2,10 +2,12 @@ import requests
 import time
 from lxml.html import fromstring
 import json
+from typing import Iterator
 
 
 class Client:
     def __init__(self, auth: dict = None, name_or_email: str = None, password: str = None):
+        """ Initialize client with provided information"""
         self.session = requests.Session()
         self.session.headers.update({
             'authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
@@ -16,9 +18,10 @@ class Client:
         elif name_or_email and password:
             self.login(name_or_email, password)
         else:
-            raise RuntimeError("Either auth or name/email+password is required to login.")
+            raise RuntimeError("Either auth or username/email+password is required to login.")
 
     def login(self, name_or_email: str, password: str):
+        """ Login to the account via username/email and password """
         login_session = requests.Session()
         resp = login_session.get("https://twitter.com/account/begin_password_reset")
         auth_token = fromstring(resp.text).xpath("//input[@name='authenticity_token']/@value")[0]
@@ -46,9 +49,11 @@ class Client:
         self.session.headers.update(self.auth)
 
     def dump_auth(self) -> None:
+        """ Print current auth information"""
         print(json.dumps(self.auth, indent=2))
 
-    def get_timeline(self, count) -> dict:
+    def get_timeline(self, count: int = 20) -> dict:
+        """ Get tweets in home timeline  """
         resp = self.session.get(
             "https://api.twitter.com/1.1/statuses/home_timeline.json",
             params={
@@ -57,13 +62,25 @@ class Client:
         )
         return resp.json()
 
-    def stream_timeline(self) -> dict:
-        resp = self.session.get("https://api.twitter.com/1.1/statuses/home_timeline.json?count=1")
+    def get_user_tweets(self, screen_name: str, count: int = 20) -> dict:
+        """ Get tweets of the specific user """
+        resp = self.session.get(
+            "https://api.twitter.com/1.1/statuses/user_timeline.json",
+            params={
+                "count": count,
+                "screen_name": screen_name
+            }
+        )
+        return resp.json()
+
+    def stream_timeline(self) -> Iterator[list]:
+        """ Stream tweets in home timeline """
+        resp = self.session.get(f"https://api.twitter.com/1.1/statuses/home_timeline.json?count=1")
         last_tweet = resp.json()[0]["id"]
         while True:
             try:
                 resp = self.session.get(
-                    "https://api.twitter.com/1.1/statuses/home_timeline.json",
+                    f"https://api.twitter.com/1.1/statuses/home_timeline.json",
                     params={
                         "count": 40,
                         "since_id": last_tweet
@@ -77,7 +94,30 @@ class Client:
             except requests.exceptions.ConnectionError:
                 print("Connection aborted! Retrying...")
 
+    def stream_user_tweets(self, screen_name: str) -> Iterator[list]:
+        """ Stream tweets of the specific user """
+        resp = self.session.get(f"https://api.twitter.com/1.1/statuses/user_timeline.json?count=1")
+        last_tweet = resp.json()[0]["id"]
+        while True:
+            try:
+                resp = self.session.get(
+                    f"https://api.twitter.com/1.1/statuses/user_timeline.json",
+                    params={
+                        "count": 40,
+                        "since_id": last_tweet,
+                        "screen_name": screen_name
+                    }
+                )
+                data = resp.json()
+                if data:
+                    last_tweet = data[0]["id"]
+                yield data
+                time.sleep(4)
+            except requests.exceptions.ConnectionError:
+                print("Connection aborted! Retrying...")
+
     def follow_user(self, screen_name: str, type_: bool = True) -> bool:
+        """ Follow or unfollow the specific user """
         url = "https://api.twitter.com/1.1/friendships/" + ("create.json" if type_ else "destroy.json")
         resp = self.session.post(
             url,
@@ -86,6 +126,7 @@ class Client:
         return False if "errors" in resp.json() else True
 
     def favorite_tweet(self, tweet_id: int, type_: bool = True) -> bool:
+        """ Favorite or unfavortie the specific tweet """
         url = "https://api.twitter.com/1.1/favorites/" + ("create.json" if type_ else "destroy.json")
         resp = self.session.post(
             url,
@@ -94,6 +135,7 @@ class Client:
         return False if "errors" in resp.json() else True
 
     def send_tweet(self, text: str) -> bool:
+        """ Send a tweet """
         resp = self.session.post(
             "https://api.twitter.com/1.1/statuses/update.json",
             data={"status": text}
@@ -101,6 +143,7 @@ class Client:
         return False if "errors" in resp.json() else True
 
     def delete_tweet(self, tweet_id: int) -> bool:
+        """ Delete a tweet """
         resp = self.session.post(
             f"https://api.twitter.com/1.1/statuses/destroy/{tweet_id}.json"
         )
