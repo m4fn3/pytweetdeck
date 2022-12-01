@@ -91,8 +91,8 @@ class Client:
                     last_tweet = data[0]["id"]
                 yield data
                 time.sleep(4)
-            except requests.exceptions:
-                print("Connection aborted! Retrying...")
+            except Exception:
+                print("Something wrong with connection!")
 
     def stream_user_tweets(self, screen_name: str) -> Iterator[list]:
         """ Stream tweets of the specific user """
@@ -113,8 +113,8 @@ class Client:
                     last_tweet = data[0]["id"]
                 yield data
                 time.sleep(4)
-            except requests.exceptions:
-                print("Connection aborted! Retrying...")
+            except Exception:
+                print("Something wrong with connection!")
 
     def follow_user(self, screen_name: str, type_: bool = True) -> bool:
         """ Follow or unfollow the specific user """
