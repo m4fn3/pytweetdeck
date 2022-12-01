@@ -91,7 +91,7 @@ class Client:
                     last_tweet = data[0]["id"]
                 yield data
                 time.sleep(4)
-            except requests.exceptions.ConnectionError:
+            except requests.exceptions:
                 print("Connection aborted! Retrying...")
 
     def stream_user_tweets(self, screen_name: str) -> Iterator[list]:
@@ -113,7 +113,7 @@ class Client:
                     last_tweet = data[0]["id"]
                 yield data
                 time.sleep(4)
-            except requests.exceptions.ConnectionError:
+            except requests.exceptions:
                 print("Connection aborted! Retrying...")
 
     def follow_user(self, screen_name: str, type_: bool = True) -> bool:
